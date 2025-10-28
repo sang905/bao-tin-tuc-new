@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NewsPro • Bảng tin & Quản trị</title>
+  <meta name="description" content="Trang báo tin tức hiện đại, tông sáng, có quản trị: đăng nhập, đăng bài, upload/chỉnh sửa ảnh; cấu hình link quảng cáo Shopee và ảnh popup ngay trong Admin.">
+  <meta name="robots" content="index,follow">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#f3f6fc;
+      --paper:#ffffff;
+      --ink:#0e1b2c;
+      --muted:#6b7280;
+      --line:#e4e8f2;
+      --accent:#1d4ed8;
+      --accent-2:#0ea5e9;
+      --warn:#ef4444;
+      --radius:16px;
+      --shadow:0 8px 20px rgba(0,0,0,.06);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,"Segoe UI Emoji","Apple Color Emoji",sans-serif;color:var(--ink);background:linear-gradient(180deg,#f9fbff,#f5f7fb)}
+    a{color:var(--accent);text-decoration:none}
+    .container{max-width:1220px;margin:0 auto;padding:16px}
+
+    header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.85);backdrop-filter:saturate(1.4) blur(8px);border-bottom:1px solid var(--line)}
+    .nav{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:800}
+    .badge{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:grid;place-items:center;color:#06131e}
+    .actions{display:flex;gap:10px}
+    .btn{appearance:none;border:1px solid var(--line);background:#fff;color:var(--ink);padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:600}
+    .btn.primary{background:linear-gradient(135deg,#fff,#eef2ff);border-color:#c7d2fe}
+    .btn.accent{background:linear-gradient(135deg,var(--accent),#4f46e5);color:#fff;border-color:transparent}
+    .btn.ghost{background:#fff}
+    .btn.warn{background:#fee2e2;border-color:#fecaca;color:#991b1b}
+
+    .hero{padding:26px 0 8px}
+    .hero h1{margin:0;font-size:clamp(24px,4vw,36px);line-height:1.15}
+    .hero p{margin:6px 0 0;color:var(--muted)}
+
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:18px;align-items:start}
+    .col-8{grid-column:span 8}
+    .col-4{grid-column:span 4}
+    @media (max-width: 980px){.col-8,.col-4{grid-column:1/-1}}
+
+    .card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+    .card+.card{margin-top:16px}
+    .card img{width:100%;display:block;aspect-ratio:16/9;object-fit:cover}
+    .content{padding:14px 14px 16px}
+    .card h3{margin:4px 0 8px;font-size:18px}
+    .meta{display:flex;gap:8px;align-items:center;color:var(--muted);font-size:12px}
+
+    .box{padding:14px;border-radius:var(--radius);border:1px solid var(--line);background:linear-gradient(180deg,#ffffff,#f8fafc)}
+    .box h4{margin:0 0 8px}
+
+    .input{padding:10px 12px;border:1px solid var(--line);border-radius:10px;min-width:220px}
+    select.input{min-width:160px}
+
+    /* Admin */
+    .admin{display:none}
+    .admin.show{display:block}
+    .tabs{display:flex;gap:8px;border-bottom:1px solid var(--line);margin-top:8px}
+    .tab{padding:10px 12px;border:1px solid var(--line);border-bottom:none;border-radius:10px 10px 0 0;background:#fff;cursor:pointer}
+    .tab.active{background:linear-gradient(180deg,#fff,#f8fafc);font-weight:700}
+    .panel{border:1px solid var(--line);border-top:none;border-radius:0 0 14px 14px;background:#fff;padding:14px}
+
+    .form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .form .row{display:flex;flex-direction:column;gap:6px}
+    .form textarea{min-height:160px}
+    .form input,.form textarea,.form select{padding:10px 12px;border:1px solid var(--line);border-radius:10px;font:inherit}
+    .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
+
+    .table{width:100%;border-collapse:collapse;margin-top:10px}
+    .table th,.table td{padding:10px;border-bottom:1px solid var(--line);text-align:left;font-size:14px}
+
+    .thumb{width:100%;max-width:520px;aspect-ratio:16/9;object-fit:cover;border:1px solid var(--line);border-radius:10px}
+    .thumb.small{max-width:260px}
+
+    /* Share button */
+    .share-btn{display:inline-flex;align-items:center;gap:4px;background:none;border:none;color:var(--accent);cursor:pointer;font-size:14px;padding:2px 4px;border-radius:6px;}
+    .share-btn svg{width:16px;height:16px;}
+    .share-btn:hover{opacity:0.8;}
+
+    /* Auth modal */
+    .overlay{position:fixed;inset:0;background:rgba(2,6,23,.45);display:none;place-items:center;z-index:1000}
+    .overlay.show{display:grid}
+    .modal{width:min(92vw,540px);background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);overflow:hidden}
+    .modal .head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#ffffff,#f8fafc)}
+    .modal .body{padding:16px}
+
+    /* Popup Ad */
+    .ad-ov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;place-items:center;z-index:900}
+    .ad-ov.show{display:grid}
+    .ad{width:min(92vw,760px);background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,.25)}
+    .ad a{display:block;position:relative}
+    .ad img{width:100%;height:auto;display:block}
+    .ad .topbar{position:absolute;inset:10px 10px auto;display:flex;justify-content:space-between;width:calc(100% - 20px);align-items:center}
+    .ad .badge{background:rgba(255,255,255,.95);color:#0f172a;border:1px solid var(--line);font-size:12px;padding:6px 10px;border-radius:999px}
+    .ad .close{appearance:none;border:1px solid var(--line);background:#fff;width:34px;height:34px;border-radius:999px;cursor:pointer}
+    .ad .foot{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-top:1px solid var(--line);background:#fff}
+    .ad .cta{appearance:none;border:0;background:linear-gradient(135deg,var(--accent),#4f46e5);color:#fff;font-weight:800;padding:10px 16px;border-radius:12px;cursor:pointer}
+    .ad .skip{appearance:none;border:0;background:transparent;color:#0f172a;opacity:.6}
+    .ad .skip.ready{opacity:1;text-decoration:underline;cursor:pointer}
+
+    /* Sticky promo */
+    .sticky{position:fixed;left:0;right:0;bottom:14px;display:none;z-index:850}
+    .sticky .inner{margin:0 auto;max-width:760px;display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:14px;backdrop-filter:blur(8px);background:rgba(255,255,255,.92);border:1px solid var(--line);box-shadow:var(--shadow)}
+    .sticky img{width:54px;height:54px;border-radius:10px;object-fit:cover}
+    .sticky .txt{flex:1}
+    .sticky .txt b{display:block;font-size:14px}
+    .sticky .txt small{color:var(--muted)}
+    .sticky .btn{white-space:nowrap;padding:10px 14px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#4f46e5);color:#fff;font-weight:800}
+    .sticky .close{appearance:none;border:1px solid var(--line);background:#fff;width:34px;height:34px;border-radius:999px;cursor:pointer}
+    .sticky.show{display:block}
+
+    footer{color:var(--muted);font-size:12px;padding:30px 0}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container nav">
+      <div class="brand"><span class="badge">N</span>NewsPro</div>
+      <nav style="display:flex;gap:14px;font-size:14px;color:var(--muted)"><a href="#">Trang chủ</a><a href="#">Tin nóng</a><a href="#">Đời sống</a><a href="#">Công nghệ</a></nav>
+      <div class="actions">
+        <input id="q" class="input" placeholder="Tìm bài viết..." />
+        <select id="catFilter" class="input"><option value="">Tất cả chuyên mục</option></select>
+        <button id="adminBtn" class="btn primary" title="Đăng nhập quản trị">Quản trị</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <h1>Bảng tin hôm nay</h1>
+      <p>Tin nhanh, giao diện hiện đại. Mọi cấu hình quảng cáo Shopee chỉnh ngay trong Admin.</p>
+    </section>
+
+    <section class="grid">
+      <div class="col-8">
+        <div id="postList"></div>
+        <!-- Video section for advertisements -->
+        <h2 style="margin-top:30px">Video nổi bật</h2>
+        <div id="videoList"></div>
+      </div>
+
+      <aside class="col-4">
+        <div class="box">
+          <h4>Tin tài trợ <span class="pill" style="border:1px solid #cbd5e1;padding:4px 8px;border-radius:999px;font-size:12px;background:#ecfeff;color:#065f46">Quảng cáo</span></h4>
+          <p style="margin-top:6px;color:var(--muted)">Ưu đãi giới hạn, nhấn để xem chi tiết sản phẩm.</p>
+          <a id="side-ad" class="btn accent" href="#" target="_blank" rel="nofollow sponsored noopener">Xem khuyến mãi</a>
+        </div>
+
+        <div class="box" style="margin-top:14px">
+          <h4>Xuất / Nhập dữ liệu</h4>
+          <div class="toolbar">
+            <button id="exportBtn" class="btn">Xuất JSON</button>
+            <label class="btn ghost" for="importFile">Nhập JSON</label>
+            <input id="importFile" type="file" accept="application/json" style="display:none">
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <!-- ADMIN -->
+    <section id="admin" class="admin card" style="margin-top:18px">
+      <div class="content">
+        <h2 style="margin:0 0 8px">Bảng quản trị</h2>
+        <div class="tabs">
+          <button class="tab active" data-tab="posts">Bài viết</button>
+          <button class="tab" data-tab="ads">Quảng cáo Shopee</button>
+          <!-- Tab quản lý video quảng cáo -->
+          <button class="tab" data-tab="videos">Video</button>
+          <button class="tab" data-tab="settings">Cài đặt</button>
+        </div>
+        <div class="panel" id="tab-posts">
+          <div class="form">
+            <div class="row">
+              <label>Tiêu đề</label>
+              <input id="fTitle" placeholder="Nhập tiêu đề">
+            </div>
+            <div class="row">
+              <label>Chuyên mục</label>
+              <input id="fCategory" placeholder="VD: Đời sống, Công nghệ">
+            </div>
+            <div class="row" style="grid-column:1/-1">
+              <label>Nội dung (Markdown)</label>
+              <textarea id="fBody" placeholder="# Tiêu đề
+Nội dung **đậm** *nghiêng* [link](https://)"></textarea>
+            </div>
+            <div class="row">
+              <label>Thẻ (phân cách dấu phẩy)</label>
+              <input id="fTags" placeholder="khuyến mãi, mẹo vặt">
+            </div>
+            <div class="row">
+              <label>Ảnh bìa</label>
+              <input id="fImage" type="file" accept="image/*">
+              <img id="fPreview" class="thumb" alt="Xem trước ảnh" />
+              <small class="muted">Tự nén về chiều rộng tối đa 1280px để tối ưu tải trang.</small>
+            </div>
+          </div>
+          <div class="toolbar">
+            <button id="savePost" class="btn accent">Lưu bài</button>
+            <button id="newPost" class="btn">Bài mới</button>
+            <button id="deletePost" class="btn warn">Xoá bài</button>
+            <span id="status" style="color:var(--muted)"></span>
+          </div>
+          <table class="table" id="postTable">
+            <thead><tr><th>Tiêu đề</th><th>Chuyên mục</th><th>Ngày</th><th>Hành động</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <div class="panel" id="tab-ads" style="display:none">
+          <div class="form">
+            <div class="row">
+              <label>Link Shopee (PRODUCT_URL)</label>
+              <input id="adLinkInput" placeholder="https://shopee.vn/...">
+            </div>
+            <div class="row">
+              <label>Ảnh quảng cáo (tải ảnh)</label>
+              <input id="adImageFile" type="file" accept="image/*">
+              <img id="adImagePreview" class="thumb small" alt="Xem trước ảnh quảng cáo" />
+            </div>
+            <div class="row">
+              <label>Hoặc URL ảnh quảng cáo</label>
+              <input id="adImageUrl" placeholder="https://...jpg">
+            </div>
+            <div class="row">
+              <label>Caption dưới popup</label>
+              <input id="adCaption" placeholder="Ưu đãi chỉ hôm nay • Bấm để xem">
+            </div>
+            <div class="row">
+              <label>Thời gian cho phép Bỏ qua (giây)</label>
+              <input id="adSkipSec" type="number" min="0" value="3">
+            </div>
+            <div class="row">
+              <label>Chu kỳ hiện lại popup (giờ)</label>
+              <input id="adEveryHours" type="number" min="0" value="12">
+            </div>
+            <div class="row">
+              <label>Trễ hiện banner dính (giây, 0 = tắt)</label>
+              <input id="adStickyDelay" type="number" min="0" value="6">
+            </div>
+
+            <!-- Hiển thị số lần click vào link Shopee -->
+            <div class="row">
+              <label>Lượt click Shopee</label>
+              <span id="clickCount" style="font-weight:600;padding:10px 0;color:var(--accent)"></span>
+            </div>
+          </div>
+          <div class="toolbar">
+            <button id="saveAds" class="btn accent">Lưu cấu hình quảng cáo</button>
+            <span style="color:var(--muted)">Cấu hình được lưu vào thiết bị (LocalStorage).</span>
+          </div>
+        </div>
+
+        <!-- Panel quản lý Video -->
+        <div class="panel" id="tab-videos" style="display:none">
+          <div class="form">
+            <div class="row">
+              <label>Tiêu đề video</label>
+              <input id="vTitle" placeholder="Nhập tiêu đề video">
+            </div>
+            <div class="row">
+              <label>Chọn file video</label>
+              <input id="vFile" type="file" accept="video/*">
+              <video id="vPreview" class="thumb" controls style="max-width:520px;display:none;"></video>
+            </div>
+            <div class="row" style="grid-column:1/-1">
+              <label>Mô tả video</label>
+              <textarea id="vDesc" placeholder="Mô tả ngắn cho video quảng cáo..."></textarea>
+            </div>
+          </div>
+          <div class="toolbar">
+            <button id="saveVideo" class="btn accent">Lưu video</button>
+            <button id="newVideo" class="btn">Video mới</button>
+            <button id="deleteVideo" class="btn warn">Xoá video</button>
+            <span id="videoStatus" style="color:var(--muted)"></span>
+          </div>
+          <table class="table" id="videoTable">
+            <thead><tr><th>Tiêu đề</th><th>Ngày</th><th>Hành động</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <div class="panel" id="tab-settings" style="display:none">
+          <p style="margin-top:0;color:var(--muted)">Đăng nhập/đăng xuất & đổi mật khẩu.</p>
+          <div class="toolbar">
+            <button id="openAuth" class="btn primary">Mở cửa sổ đăng nhập</button>
+            <button id="logoutBtn2" class="btn">Đăng xuất</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- AUTH MODAL -->
+  <div id="authOv" class="overlay" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Đăng nhập quản trị">
+    <div class="modal">
+      <div class="head"><b>Đăng nhập quản trị</b><button id="authClose" class="btn">✕</button></div>
+      <div class="body">
+        <div style="display:grid;gap:10px">
+          <input id="authPass" class="input" type="password" placeholder="Nhập mật khẩu" />
+          <div class="toolbar">
+            <button id="authOk" class="btn accent">Đăng nhập</button>
+            <button id="logoutBtn" class="btn">Đăng xuất</button>
+            <button id="changePassBtn" class="btn primary" title="Đổi mật khẩu (lưu hash vào thiết bị này)">Đổi mật khẩu…</button>
+          </div>
+          <details>
+            <summary style="cursor:pointer;color:var(--muted)">Hướng dẫn đổi mật khẩu (SHA-256)</summary>
+            <div style="margin-top:8px">
+              <input id="newPass" class="input" type="password" placeholder="Mật khẩu mới">
+              <button id="hashBtn" class="btn">Tạo & lưu hash</button>
+              <input id="hashOut" class="input" readonly placeholder="Hash sẽ hiện ở đây">
+              <small class="muted">Hash được lưu LocalStorage (thiết bị hiện tại). Muốn dùng cho tất cả nơi deploy, hãy hard-code hash này vào file.</small>
+            </div>
+          </details>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- POPUP AD -->
+  <div id="adOv" class="ad-ov" aria-hidden="true">
+    <div class="ad">
+      <a id="adLinkA" href="#" target="_blank" rel="nofollow sponsored noopener" aria-label="Mở trang sản phẩm">
+        <img id="adImg" src="" alt="Quảng cáo sản phẩm" loading="eager" />
+        <div class="topbar"><span class="badge">Quảng cáo</span><button id="adClose" class="close">✕</button></div>
+      </a>
+      <div class="foot">
+        <small id="adCap" style="color:var(--muted)">Ưu đãi chỉ hôm nay • Bấm để xem</small>
+        <button id="adSkip" class="skip" disabled>Bỏ qua (3)</button>
+        <button id="adCTA" class="cta">Xem ưu đãi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STICKY PROMO -->
+  <div id="sticky" class="sticky" aria-hidden="true">
+    <div class="inner">
+      <img id="stickyImg" src="" alt="Sản phẩm nổi bật" />
+      <div class="txt"><b id="stickyTitle">Giá tốt hôm nay</b><small>Nhấn để xem chi tiết sản phẩm</small></div>
+      <a id="stickyBtn" class="btn" href="#" target="_blank" rel="nofollow sponsored noopener">Xem ngay</a>
+      <button id="stickyClose" class="close">✕</button>
+    </div>
+  </div>
+
+  <footer class="container">
+    <div>© <span id="y"></span> NewsPro • Trang có liên kết tiếp thị (gắn cờ "Quảng cáo").</div>
+    <script>document.getElementById('y').textContent=new Date().getFullYear()</script>
+  </footer>
+
+  <script>
+    // --------------- CẤU HÌNH & KHÓA LƯU ---------------
+    const LS_POSTS = 'np_posts_v1';
+    const LS_PASS = 'np_admin_hash_v1';
+    const LS_ADS  = 'np_ads_cfg_v1';
+    // lưu danh sách video và đếm click quảng cáo
+    const LS_VIDEOS = 'np_videos_v1';
+    const LS_CLICKS = 'np_ads_clicks_v1';
+
+    // Icon SVG dùng cho nút chia sẻ (kích thước 16x16, màu kế thừa từ text)
+    const SHARE_ICON = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M18 16.08c-0.76 0-1.44 0.3-1.96 0.77L8.91 12.7c0.05-0.23 0.09-0.46 0.09-0.7s-0.04-0.47-0.09-0.7l7.02-4.11c0.53 0.5 1.23 0.81 2.07 0.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 0.24 0.04 0.47 0.09 0.7L8.91 9.81c-0.53-0.5-1.23-0.81-2.07-0.81-1.66 0-3 1.34-3 3s1.34 3 3 3c0.84 0 1.54-0.31 2.07-0.81l7.02 4.11c-0.05 0.23-0.09 0.46-0.09 0.7 0 1.66 1.34 3 3 3s3-1.34 3-3-1.34-3-3-3z"/></svg>';
+
+    // --------------- TIỆN ÍCH ---------------
+    function buildAffiliateUrl(baseUrl, params){
+      params = params||{}; try{ var url=new URL(baseUrl); Object.keys(params).forEach(function(k){ url.searchParams.set(k, params[k]); }); return url.toString(); }catch(e){ return baseUrl; }
+    }
+    function fmtDate(ts){ var d=new Date(ts); return d.toLocaleString('vi-VN'); }
+
+    // Mini-Markdown -> HTML (basic, dùng callback để tránh $ trong chuỗi)
+    function md(s){
+      s = (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      s = s.replace(/^######\s?(.*)$/gm, function(m,g1){ return '<h6>'+g1+'</h6>'; })
+           .replace(/^#####\s?(.*)$/gm, function(m,g1){ return '<h5>'+g1+'</h5>'; })
+           .replace(/^####\s?(.*)$/gm, function(m,g1){ return '<h4>'+g1+'</h4>'; })
+           .replace(/^###\s?(.*)$/gm,  function(m,g1){ return '<h3>'+g1+'</h3>'; })
+           .replace(/^##\s?(.*)$/gm,   function(m,g1){ return '<h2>'+g1+'</h2>'; })
+           .replace(/^#\s?(.*)$/gm,    function(m,g1){ return '<h1>'+g1+'</h1>'; })
+           .replace(/\*\*(.*?)\*\*/g, function(m,g1){ return '<b>'+g1+'</b>'; })
+           .replace(/\*(.*?)\*/g,      function(m,g1){ return '<i>'+g1+'</i>'; })
+           .replace(/\[(.*?)\]\((https?:[^\s)]+)\)/g, function(m,g1,g2){ return '<a href="'+g2+'" target="_blank" rel="noopener nofollow">'+g1+'</a>'; })
+           .replace(/\n\n+/g,'</p><p>')
+           .replace(/^(.+)$/gm, function(m,g1){ return '<p>'+g1+'</p>'; });
+      return s;
+    }
+
+    function sha256Hex(text){
+      return crypto.subtle.digest('SHA-256', new TextEncoder().encode(text||''))
+        .then(function(buf){ return Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0');}).join(''); });
+    }
+
+    function fileToDataUrl(file, maxW){
+      maxW = maxW||1280; if(!file) return Promise.resolve('');
+      var img = new Image(); var reader = new FileReader();
+      return new Promise(function(res,rej){
+        reader.onload = function(){ img.src = reader.result; img.onload = function(){
+          var scale = Math.min(1, maxW / img.width);
+          var w = Math.round(img.width * scale); var h = Math.round(img.height * scale);
+          var cvs = document.createElement('canvas'); cvs.width=w; cvs.height=h; var ctx=cvs.getContext('2d'); ctx.drawImage(img,0,0,w,h);
+          res(cvs.toDataURL('image/jpeg', .9));
+        }; };
+        reader.onerror = rej; reader.readAsDataURL(file);
+      });
+    }
+
+    // Đọc file video thành Data URL (không nén)
+    function fileToDataUrlVideo(file){
+      if(!file) return Promise.resolve('');
+      return new Promise(function(resolve, reject){
+        var reader = new FileReader();
+        reader.onload = function(){ resolve(reader.result); };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // --------------- DỮ LIỆU & TRẠNG THÁI ---------------
+    var q = document.getElementById('q');
+    var catFilter = document.getElementById('catFilter');
+    var postList = document.getElementById('postList');
+
+    var posts = [];
+    try{ posts = JSON.parse(localStorage.getItem(LS_POSTS)||'[]'); }catch(e){ posts=[]; }
+    if(!Array.isArray(posts) || posts.length===0){
+      posts = [
+        {id: crypto.randomUUID(), title:'Người dân chủ động ứng phó mưa lớn', category:'Đời sống', tags:['mưa','giao thông'], body:'Cập nhật từ các tỉnh thành, mưa lớn đã **giảm dần**, nhiều tuyến đường được khơi thông...', image:'https://images.unsplash.com/photo-1520975954732-35dd222996f0?q=80&w=1920&auto=format&fit=crop', createdAt: Date.now()-1000*60*60*2},
+        {id: crypto.randomUUID(), title:'Thiết bị đeo mới hỗ trợ sức khoẻ', category:'Công nghệ', tags:['sức khoẻ','ai'], body:'Các nhà sản xuất ra mắt phiên bản *nhẹ hơn*, pin lâu hơn, tích hợp AI...', image:'https://images.unsplash.com/photo-1468495244123-6c6c332eeece?q=80&w=1920&auto=format&fit=crop', createdAt: Date.now()-1000*60*60*4}
+      ];
+      localStorage.setItem(LS_POSTS, JSON.stringify(posts));
+    }
+
+    // Video dữ liệu
+    var videos = [];
+    try{ videos = JSON.parse(localStorage.getItem(LS_VIDEOS)||'[]'); }catch(e){ videos = []; }
+    if(!Array.isArray(videos)){ videos = []; }
+
+    function uniqueCats(){ var s={}; posts.forEach(function(p){ if(p.category){ s[p.category]=1; } }); var arr=['']; Object.keys(s).forEach(function(k){arr.push(k)}); return arr; }
+    function fillCats(){ var cats=uniqueCats(); var html=''; for(var i=0;i<cats.length;i++){ html += '<option value="'+cats[i]+'">'+(cats[i]||'Tất cả chuyên mục')+'</option>'; } catFilter.innerHTML=html; }
+
+    function renderList(){
+      var kw = (q.value||'').trim().toLowerCase();
+      var cat = catFilter.value;
+      var filtered = posts.filter(function(p){ return (!cat || p.category===cat) && (!kw || (String(p.title).toLowerCase().indexOf(kw)>-1 || String(p.body).toLowerCase().indexOf(kw)>-1 || (p.tags||[]).join(',').toLowerCase().indexOf(kw)>-1)); })
+                          .sort(function(a,b){ return b.createdAt - a.createdAt; });
+      var html='';
+      filtered.forEach(function(p){
+        html += '<article class="card">'
+          + '<img src="'+(p.image||'')+'" alt="'+p.title+'" loading="lazy" width="1280" height="720" style="aspect-ratio:16/9;object-fit:cover">'
+          + '<div class="content">'
+          +   '<div class="meta"><span>'+ new Date(p.createdAt).toLocaleDateString('vi-VN') +'</span> • <span>' + (p.category||'Chung') + '</span></div>'
+          +   '<h3>'+ p.title +'</h3>'
+          +   '<div style="color:var(--muted);margin:0">'+ md((p.body||'').split('\n').slice(0,3).join('\n')) +'</div>'
+          +   '<div class="card-footer" style="margin-top:8px;display:flex;justify-content:flex-end;">'
+          +     '<button class="share-btn" data-type="post" data-id="'+ p.id +'">'+ SHARE_ICON +' Chia sẻ</button>'
+          +   '</div>'
+          + '</div>'
+          + '</article>';
+      });
+      postList.innerHTML = html;
+    }
+
+    // ---------------- VIDEO FUNCTIONS ----------------
+    function renderVideoList(){
+      var container = document.getElementById('videoList');
+      if(!container) return;
+      var html='';
+      videos.slice().sort(function(a,b){ return b.createdAt - a.createdAt; }).forEach(function(v){
+        html += '<div class="card" style="margin-top:12px;">'
+              + '<video src="'+(v.src||'')+'" controls style="width:100%;height:auto;aspect-ratio:16/9;object-fit:cover"></video>'
+              + '<div class="content">'
+              +   '<h3>'+ v.title +'</h3>'
+              +   '<p style="color:var(--muted);font-size:14px">'+ (v.desc||'') +'</p>'
+              +   '<div class="card-footer" style="margin-top:8px;display:flex;justify-content:flex-end;">'
+              +     '<button class="share-btn" data-type="video" data-id="'+ v.id +'">'+ SHARE_ICON +' Chia sẻ</button>'
+              +   '</div>'
+              + '</div>'
+              + '</div>';
+      });
+      container.innerHTML = html || '<p style="color:var(--muted)">Chưa có video nào.</p>';
+    }
+
+    function renderVideoTable(){
+      var tbl = document.getElementById('videoTable');
+      if(!tbl) return;
+      var body = tbl.querySelector('tbody');
+      var html='';
+      videos.slice().sort(function(a,b){ return b.createdAt - a.createdAt; }).forEach(function(v){
+        html += '<tr>'
+             + '<td>'+v.title+'</td>'
+             + '<td>'+fmtDate(v.createdAt)+'</td>'
+             + '<td><button data-act="edit" data-id="'+v.id+'" class="btn">Sửa</button> <button data-act="del" data-id="'+v.id+'" class="btn warn">Xoá</button></td>'
+             + '</tr>';
+      });
+      body.innerHTML = html || '<tr><td colspan="3">Chưa có video</td></tr>';
+    }
+
+    function clearVideoForm(){
+      currentVideoId = null;
+      if(vTitle) vTitle.value='';
+      if(vDesc) vDesc.value='';
+      if(vFile) vFile.value='';
+      if(vPreview){ vPreview.removeAttribute('src'); vPreview.style.display='none'; }
+      if(videoStatus) videoStatus.textContent='';
+    }
+
+    // ---------------- CLICK COUNT FUNCTIONS ----------------
+    function getClicks(){ return parseInt(localStorage.getItem(LS_CLICKS)||'0',10) || 0; }
+    function setClicks(c){ localStorage.setItem(LS_CLICKS, String(c||0)); }
+    function incrementClicks(){ var c = getClicks(); setClicks(c+1); updateClicksUI(); }
+    function updateClicksUI(){ var el = document.getElementById('clickCount'); if(el){ el.textContent = getClicks(); } }
+
+    q.addEventListener('input', renderList);
+    catFilter.addEventListener('change', renderList);
+
+    // --------------- ADMIN AUTH ---------------
+    var admin = document.getElementById('admin');
+    var adminBtn = document.getElementById('adminBtn');
+    var authOv = document.getElementById('authOv');
+    var authClose = document.getElementById('authClose');
+    var authOk = document.getElementById('authOk');
+    var logoutBtn = document.getElementById('logoutBtn');
+    var logoutBtn2 = document.getElementById('logoutBtn2');
+    var authPass = document.getElementById('authPass');
+    var changePassBtn = document.getElementById('changePassBtn');
+    var newPass = document.getElementById('newPass');
+    var hashBtn = document.getElementById('hashBtn');
+    var hashOut = document.getElementById('hashOut');
+    var openAuth = document.getElementById('openAuth');
+
+    var DEFAULT_ADMIN_HASH = '';
+    sha256Hex('admin123').then(function(h){ DEFAULT_ADMIN_HASH = h; });
+
+    function getHash(){ return localStorage.getItem(LS_PASS) || DEFAULT_ADMIN_HASH; }
+    function setHash(h){ localStorage.setItem(LS_PASS, h); }
+
+    function openLogin(){ authOv.classList.add('show'); authOv.setAttribute('aria-hidden','false'); authPass.focus(); }
+    function closeLogin(){ authOv.classList.remove('show'); authOv.setAttribute('aria-hidden','true'); authPass.value=''; }
+
+    var isAuthed=false;
+    adminBtn.addEventListener('click', openLogin);
+    openAuth.addEventListener('click', openLogin);
+    authClose.addEventListener('click', closeLogin);
+    authOk.addEventListener('click', function(){
+      sha256Hex(authPass.value||'').then(function(h){
+        if(h===getHash()){ isAuthed=true; admin.classList.add('show'); closeLogin(); renderTable(); renderVideoTable(); loadAdsToForm(); setActiveTab('posts'); }
+        else alert('Sai mật khẩu');
+      });
+    });
+    function doLogout(){ isAuthed=false; admin.classList.remove('show'); }
+    logoutBtn.addEventListener('click', doLogout);
+    logoutBtn2.addEventListener('click', doLogout);
+
+    hashBtn.addEventListener('click', function(){
+      var p = newPass.value; if(!p){ alert('Nhập mật khẩu mới'); return; }
+      sha256Hex(p).then(function(h){ setHash(h); hashOut.value=h; alert('Đã lưu hash mật khẩu mới (thiết bị này).'); });
+    });
+
+    // --------------- ADMIN TABS ---------------
+    function setActiveTab(name){
+      Array.prototype.forEach.call(document.querySelectorAll('.tab'), function(t){ t.classList.toggle('active', t.getAttribute('data-tab')===name); });
+      document.getElementById('tab-posts').style.display    = (name==='posts')? 'block':'none';
+      document.getElementById('tab-ads').style.display      = (name==='ads')? 'block':'none';
+      document.getElementById('tab-videos').style.display   = (name==='videos')? 'block':'none';
+      document.getElementById('tab-settings').style.display = (name==='settings')? 'block':'none';
+    }
+    Array.prototype.forEach.call(document.querySelectorAll('.tab'), function(t){ t.addEventListener('click', function(){ setActiveTab(t.getAttribute('data-tab')); }); });
+
+    // --------------- ADMIN POSTS (CRUD) ---------------
+    var currentId=null;
+    var fTitle = document.getElementById('fTitle');
+    var fCategory = document.getElementById('fCategory');
+    var fBody = document.getElementById('fBody');
+    var fTags = document.getElementById('fTags');
+    var fImage = document.getElementById('fImage');
+    var fPreview = document.getElementById('fPreview');
+    var savePost = document.getElementById('savePost');
+    var newPost = document.getElementById('newPost');
+    var deletePost = document.getElementById('deletePost');
+    var postTable = document.getElementById('postTable').querySelector('tbody');
+    var status = document.getElementById('status');
+
+    // ---------------- VIDEO ADMIN STATE ----------------
+    var currentVideoId = null;
+    var vTitle = document.getElementById('vTitle');
+    var vFile = document.getElementById('vFile');
+    var vPreview = document.getElementById('vPreview');
+    var vDesc = document.getElementById('vDesc');
+    var saveVideo = document.getElementById('saveVideo');
+    var newVideo = document.getElementById('newVideo');
+    var deleteVideo = document.getElementById('deleteVideo');
+    var videoStatus = document.getElementById('videoStatus');
+
+    fImage.addEventListener('change', function(){
+      if(fImage.files && fImage.files[0]){
+        fileToDataUrl(fImage.files[0]).then(function(dataUrl){ fPreview.src = dataUrl; fPreview.style.display='block'; });
+      }
+    });
+
+    // Xử lý chọn file video
+    if(vFile){
+      vFile.addEventListener('change', function(){
+        if(vFile.files && vFile.files[0]){
+          fileToDataUrlVideo(vFile.files[0]).then(function(url){ vPreview.src = url; vPreview.style.display='block'; });
+        }
+      });
+    }
+
+    function clearForm(){ currentId=null; fTitle.value=''; fCategory.value=''; fBody.value=''; fTags.value=''; fImage.value=''; fPreview.removeAttribute('src'); status.textContent=''; }
+
+    function renderTable(){
+      fillCats();
+      var html='';
+      posts.slice().sort(function(a,b){return b.createdAt - a.createdAt}).forEach(function(p){
+        html += '<tr>'
+          + '<td>'+p.title+'</td>'
+          + '<td>'+(p.category||'')+'</td>'
+          + '<td>'+fmtDate(p.createdAt)+'</td>'
+          + '<td>'
+          +   '<button data-act="edit" data-id="'+p.id+'" class="btn">Sửa</button> '
+          +   '<button data-act="del" data-id="'+p.id+'" class="btn warn">Xoá</button>'
+          + '</td>'
+          + '</tr>';
+      });
+      postTable.innerHTML = html || '<tr><td colspan="4">Chưa có bài viết</td></tr>';
+    }
+
+    postTable.addEventListener('click', function(e){
+      var t = e.target.closest('button'); if(!t) return;
+      var id = t.getAttribute('data-id');
+      var act = t.getAttribute('data-act');
+      var idx = posts.findIndex(function(p){return p.id===id});
+      if(idx<0) return;
+      if(act==='edit'){
+        var p = posts[idx]; currentId=p.id;
+        fTitle.value=p.title; fCategory.value=p.category||''; fBody.value=p.body||''; fTags.value=(p.tags||[]).join(','); fPreview.src=p.image||'';
+        status.textContent='Đang sửa: '+p.title; setActiveTab('posts');
+        window.scrollTo({top: admin.offsetTop-20, behavior:'smooth'});
+      }
+      if(act==='del'){
+        if(confirm('Xoá bài này?')){ posts.splice(idx,1); localStorage.setItem(LS_POSTS, JSON.stringify(posts)); renderTable(); renderList(); status.textContent='Đã xoá.'; }
+      }
+    });
+
+    // Video table click (edit/delete)
+    var videoTableElem = document.getElementById('videoTable');
+    if(videoTableElem){
+      videoTableElem.addEventListener('click', function(e){
+        var btn = e.target.closest('button'); if(!btn) return;
+        var id = btn.getAttribute('data-id'); var act = btn.getAttribute('data-act');
+        var idx = videos.findIndex(function(v){ return v.id===id; }); if(idx<0) return;
+        if(act==='edit'){
+          var v = videos[idx]; currentVideoId = v.id;
+          if(vTitle) vTitle.value = v.title;
+          if(vDesc) vDesc.value = v.desc || '';
+          if(vPreview){ vPreview.src = v.src || ''; vPreview.style.display='block'; }
+          if(videoStatus) videoStatus.textContent = 'Đang sửa: ' + v.title;
+          setActiveTab('videos');
+          window.scrollTo({ top: admin.offsetTop - 20, behavior:'smooth' });
+        }
+        if(act==='del'){
+          if(confirm('Xoá video này?')){
+            videos.splice(idx,1);
+            localStorage.setItem(LS_VIDEOS, JSON.stringify(videos));
+            renderVideoTable(); renderVideoList();
+            if(videoStatus) videoStatus.textContent = 'Đã xoá.';
+          }
+        }
+      });
+    }
+
+    savePost.addEventListener('click', function(){
+      if(!isAuthed){ alert('Hãy đăng nhập quản trị.'); return; }
+      var title = (fTitle.value||'').trim(); if(!title){ alert('Nhập tiêu đề'); return; }
+      var category = (fCategory.value||'').trim();
+      var body = (fBody.value||'').trim();
+      var tags = (fTags.value||'').split(',').map(function(s){return s.trim();}).filter(function(x){return !!x});
+      var imageData = fPreview.src || '';
+
+      if(currentId){
+        var p = posts.find(function(x){return x.id===currentId}); if(!p) return;
+        p.title=title; p.category=category; p.body=body; p.tags=tags; p.image=imageData; p.updatedAt=Date.now();
+        status.textContent='Đã lưu chỉnh sửa.';
+      } else {
+        posts.push({ id: crypto.randomUUID(), title:title, category:category, body:body, tags:tags, image:imageData, createdAt: Date.now() });
+        status.textContent='Đã tạo bài mới.';
+      }
+      localStorage.setItem(LS_POSTS, JSON.stringify(posts));
+      renderTable(); renderList();
+    });
+
+    newPost.addEventListener('click', clearForm);
+    deletePost.addEventListener('click', function(){
+      if(!currentId){ alert('Chưa chọn bài để xoá.'); return; }
+      var idx = posts.findIndex(function(p){return p.id===currentId}); if(idx<0) return;
+      if(confirm('Xoá bài đang mở?')){ posts.splice(idx,1); localStorage.setItem(LS_POSTS, JSON.stringify(posts)); clearForm(); renderTable(); renderList(); }
+    });
+
+    // Lưu video (tạo/sửa)
+    if(saveVideo){
+      saveVideo.addEventListener('click', function(){
+        if(!isAuthed){ alert('Hãy đăng nhập quản trị.'); return; }
+        var title = (vTitle && vTitle.value||'').trim();
+        if(!title){ alert('Nhập tiêu đề video'); return; }
+        var desc = (vDesc && vDesc.value||'').trim();
+        var src = (vPreview && vPreview.src) || '';
+        if(currentVideoId){
+          var vid = videos.find(function(x){ return x.id===currentVideoId; }); if(!vid) return;
+          vid.title = title;
+          vid.desc = desc;
+          vid.src = src;
+          vid.updatedAt = Date.now();
+          if(videoStatus) videoStatus.textContent = 'Đã lưu chỉnh sửa.';
+        } else {
+          videos.push({ id: crypto.randomUUID(), title:title, desc:desc, src:src, createdAt: Date.now() });
+          if(videoStatus) videoStatus.textContent = 'Đã tạo video mới.';
+        }
+        localStorage.setItem(LS_VIDEOS, JSON.stringify(videos));
+        renderVideoTable(); renderVideoList();
+      });
+    }
+
+    // Video mới
+    if(newVideo){ newVideo.addEventListener('click', function(){ clearVideoForm(); }); }
+
+    // Xoá video đang mở
+    if(deleteVideo){ deleteVideo.addEventListener('click', function(){
+      if(!currentVideoId){ alert('Chưa chọn video để xoá.'); return; }
+      var idx = videos.findIndex(function(v){ return v.id===currentVideoId; }); if(idx<0) return;
+      if(confirm('Xoá video đang mở?')){
+        videos.splice(idx,1);
+        localStorage.setItem(LS_VIDEOS, JSON.stringify(videos));
+        clearVideoForm();
+        renderVideoTable(); renderVideoList();
+      }
+    }); }
+
+    // --------------- ADS CONFIG (Shopee) ---------------
+    var adLinkInput = document.getElementById('adLinkInput');
+    var adImageFile = document.getElementById('adImageFile');
+    var adImagePreview = document.getElementById('adImagePreview');
+    var adImageUrl = document.getElementById('adImageUrl');
+    var adCaption = document.getElementById('adCaption');
+    var adSkipSec = document.getElementById('adSkipSec');
+    var adEveryHours = document.getElementById('adEveryHours');
+    var adStickyDelay = document.getElementById('adStickyDelay');
+    var saveAds = document.getElementById('saveAds');
+
+    function getAdsCfg(){ try{ return JSON.parse(localStorage.getItem(LS_ADS)||'{}'); }catch(e){ return {}; } }
+    function setAdsCfg(obj){ localStorage.setItem(LS_ADS, JSON.stringify(obj)); }
+
+    function loadAdsToForm(){
+      var cfg = getAdsCfg();
+      adLinkInput.value = cfg.productUrl || '';
+      adImagePreview.src = cfg.adImage || '';
+      adImageUrl.value = cfg.adImageUrl || '';
+      adCaption.value = cfg.caption || 'Ưu đãi chỉ hôm nay • Bấm để xem';
+      adSkipSec.value = (cfg.skipSec!=null ? cfg.skipSec : 3);
+      adEveryHours.value = (cfg.everyHours!=null ? cfg.everyHours : 12);
+      adStickyDelay.value = (cfg.stickyDelay!=null ? cfg.stickyDelay : 6);
+      // cập nhật số lần click khi mở form
+      updateClicksUI();
+    }
+
+    adImageFile.addEventListener('change', function(){
+      if(adImageFile.files && adImageFile.files[0]){
+        fileToDataUrl(adImageFile.files[0], 1280).then(function(url){ adImagePreview.src = url; });
+      }
+    });
+
+    saveAds.addEventListener('click', function(){
+      var cfg = getAdsCfg();
+      var next = {
+        productUrl: (adLinkInput.value||'').trim(),
+        adImage: adImagePreview.src || (cfg.adImage||''),
+        adImageUrl: (adImageUrl.value||'').trim(),
+        caption: (adCaption.value||'Ưu đãi chỉ hôm nay • Bấm để xem').trim(),
+        skipSec: Math.max(0, parseInt(adSkipSec.value||'3',10)),
+        everyHours: Math.max(0, parseInt(adEveryHours.value||'12',10)),
+        stickyDelay: Math.max(0, parseInt(adStickyDelay.value||'6',10))
+      };
+      setAdsCfg(next); alert('Đã lưu cấu hình quảng cáo.');
+      applyAdsFromCfg();
+    });
+
+    // --------------- POPUP/STICKY AD RUNTIME ---------------
+    var adOv = document.getElementById('adOv');
+    var adImg = document.getElementById('adImg');
+    var adLinkA = document.getElementById('adLinkA');
+    var adClose = document.getElementById('adClose');
+    var adSkip = document.getElementById('adSkip');
+    var adCTA = document.getElementById('adCTA');
+    var adCap = document.getElementById('adCap');
+
+    var sticky = document.getElementById('sticky');
+    var stickyBtn = document.getElementById('stickyBtn');
+    var stickyImg = document.getElementById('stickyImg');
+    var stickyClose = document.getElementById('stickyClose');
+
+    function hrefWith(place, baseUrl, utmBase){
+      var UTM = { utm_source:'newspro', utm_medium:'affiliate', utm_campaign:'homepage', utm_content:place };
+      if(utmBase){ for(var k in utmBase){ UTM[k]=utmBase[k]; } }
+      return buildAffiliateUrl(baseUrl, UTM);
+    }
+
+    function shouldShowAd(key, hours){
+      try{ var last=+localStorage.getItem(key)||0; var gap=hours*3600*1000; if(Date.now()-last>gap){ localStorage.setItem(key, Date.now()); return true; } return false; }
+      catch(e){ return true; }
+    }
+
+    function startSkipCountdown(seconds){
+      var left=seconds; adSkip.textContent='Bỏ qua ('+left+')'; adSkip.classList.remove('ready'); adSkip.disabled=true;
+      var t=setInterval(function(){ left-=1; if(left<=0){ clearInterval(t); adSkip.textContent='Bỏ qua'; adSkip.classList.add('ready'); adSkip.disabled=false; } else { adSkip.textContent='Bỏ qua ('+left+')'; } },1000);
+    }
+
+    function showAd(){ adOv.classList.add('show'); adOv.setAttribute('aria-hidden','false'); document.body.style.overflow='hidden'; }
+    function hideAd(){ adOv.classList.remove('show'); adOv.setAttribute('aria-hidden','true'); document.body.style.overflow=''; }
+
+    adClose.addEventListener('click', hideAd);
+    adSkip.addEventListener('click', function(){ if(!adSkip.disabled) hideAd(); });
+    adCTA.addEventListener('click', function(){ adLinkA.click(); });
+    adOv.addEventListener('click', function(e){ if(e.target===adOv) hideAd(); });
+    stickyClose.addEventListener('click', function(){ sticky.classList.remove('show'); });
+
+    // Ghi nhận lượt click vào quảng cáo Shopee
+    if(adLinkA){ adLinkA.addEventListener('click', function(){ incrementClicks(); }); }
+    if(stickyBtn){ stickyBtn.addEventListener('click', function(){ incrementClicks(); }); }
+    var sideAdEl = document.getElementById('side-ad');
+    if(sideAdEl){ sideAdEl.addEventListener('click', function(){ incrementClicks(); }); }
+
+    // Chia sẻ bài viết và video
+    if(postList){
+      postList.addEventListener('click', function(e){
+        var btn = e.target.closest('.share-btn');
+        if(btn){
+          var type = btn.getAttribute('data-type');
+          var id = btn.getAttribute('data-id');
+          shareItem(type, id);
+        }
+      });
+    }
+    var videoListEl = document.getElementById('videoList');
+    if(videoListEl){
+      videoListEl.addEventListener('click', function(e){
+        var btn = e.target.closest('.share-btn');
+        if(btn){
+          var type = btn.getAttribute('data-type');
+          var id = btn.getAttribute('data-id');
+          shareItem(type, id);
+        }
+      });
+    }
+
+    function shareItem(type, id){
+      var title='';
+      var text='';
+      var url=window.location.href;
+      if(type==='post'){
+        var p = posts.find(function(x){ return x.id===id; });
+        if(p){ title=p.title; text=p.title + ' - Đọc thêm trên NewsPro'; }
+      } else if(type==='video'){
+        var v = videos.find(function(x){ return x.id===id; });
+        if(v){ title=v.title; text=v.title + ' - Xem video trên NewsPro'; }
+      }
+      if(!title){ return; }
+      // Sử dụng Web Share API nếu khả dụng
+      if(navigator.share){
+        navigator.share({ title: title, text: text, url: url }).catch(function(err){ console.log(err); });
+      } else {
+        // Fallback: sao chép liên kết vào clipboard
+        navigator.clipboard.writeText(text + ' ' + url).then(function(){ alert('Đã sao chép liên kết!'); });
+      }
+    }
+
+    function applyAdsFromCfg(){
+      var cfg = getAdsCfg();
+      var product = cfg.productUrl || 'https://shopee.vn/your-product-link';
+      var imgSrc = (cfg.adImage && cfg.adImage.indexOf('data:')===0) ? cfg.adImage : (cfg.adImageUrl || cfg.adImage || 'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?q=80&w=1920&auto=format&fit=crop');
+      var cap = cfg.caption || 'Ưu đãi chỉ hôm nay • Bấm để xem';
+      var skip = (typeof cfg.skipSec==='number') ? cfg.skipSec : 3;
+      var every = (typeof cfg.everyHours==='number') ? cfg.everyHours : 12;
+      var delay = (typeof cfg.stickyDelay==='number') ? cfg.stickyDelay : 6;
+
+      adImg.src = imgSrc; stickyImg.src = imgSrc; adCap.textContent = cap;
+      adLinkA.href = hrefWith('popup', product);
+      stickyBtn.href = hrefWith('sticky', product);
+      document.getElementById('side-ad').href = hrefWith('sidebar', product);
+
+      if(shouldShowAd('np_ad_last_v1', every)){
+        showAd(); startSkipCountdown(skip);
+      }
+      if(delay>0){ setTimeout(function(){ sticky.classList.add('show'); sticky.setAttribute('aria-hidden','false'); }, delay*1000); }
+    }
+
+    // --------------- KHỞI TẠO ---------------
+    window.addEventListener('load', function(){
+      fillCats(); renderList(); renderVideoList(); applyAdsFromCfg(); updateClicksUI();
+      document.getElementById('y').textContent = new Date().getFullYear();
+    });
+  </script>
+</body>
+</html>
